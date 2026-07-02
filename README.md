@@ -1,6 +1,6 @@
-# Evidence Preservation & Management System (EPS)
+# Evidence Management System (EMS)
 
-A secure, web-based digital forensics evidence tracking and management application built in Python/Flask and backed by PostgreSQL. Designed for law enforcement, forensics labs, and judicial review systems, EPS ensures cryptographic integrity, a tamper-proof audit trail, and compliance with electronic evidence regulations.
+A secure, web-based digital evidence tracking and management application built in Python/Flask and backed by PostgreSQL. Designed for law enforcement, forensics labs, and judicial review systems, EPS ensures cryptographic integrity, a tamper-proof audit trail, and compliance with electronic evidence regulations.
 
 ---
 
