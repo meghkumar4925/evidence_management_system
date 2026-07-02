@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block header %}Verification Status{% endblock %}
+{% block content %}
+<div class="card">
+    <form action="{{ url_for('officer_verify') }}" method="POST" style="display:flex; gap:10px; align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0; flex:1; max-width:300px;">
+            <label>Enter Evidence ID</label>
+            <input type="text" name="evidence_id" class="form-control" required>
+        </div>
+        <button type="submit" class="btn">Check Status</button>
+    </form>
+</div>
+
+{% if data %}
+<div class="card" style="max-width: 500px;">
+    <h4>Status Result</h4>
+    <div style="margin-top: 15px;">
+        <p style="margin-bottom: 10px;"><strong>Status:</strong>
+            <span style="padding:4px 8px; border-radius:12px; font-size:0.85em; 
+                {% if data.status == 'Pending' %}background:#fef3c7;color:#92400e;
+                {% elif data.status == 'Verified' %}background:#d1fae5;color:#065f46;
+                {% elif data.status == 'Rejected' %}background:#fee2e2;color:#991b1b;
+                {% else %}background:#e5e7eb;color:#374151;{% endif %}">
+                {{ data.status }}
+            </span>
+        </p>
+        <p style="margin-bottom: 10px;"><strong>Verified By:</strong> {{ data.verified_by or 'N/A' }}</p>
+        <p style="margin-bottom: 10px;"><strong>Verification Date:</strong> {{ data.verified_at.strftime('%Y-%m-%d
+            %H:%M') if data.verified_at else 'N/A' }}</p>
+        <p style="margin-bottom: 10px;"><strong>Notes/Remarks:</strong> <br>
+            <span style="color:var(--wa-text-muted);">{{ data.notes or 'None' }}</span>
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

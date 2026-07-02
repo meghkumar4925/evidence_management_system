@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block header %}Chain of Custody{% endblock %}
+{% block content %}
+<div class="card">
+    <form action="{{ url_for('supervisor_coc') }}" method="POST" style="display:flex; gap:10px; align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0; flex:1; max-width:300px;">
+            <label>Enter Evidence ID</label>
+            <input type="text" name="evidence_id" class="form-control" required>
+        </div>
+        <button type="submit" class="btn">View Timeline</button>
+    </form>
+</div>
+
+{% if coc %}
+<div class="card">
+    <h4>Timeline for Evidence</h4>
+    <div style="margin-top: 20px; border-left: 2px solid var(--wa-primary-light); padding-left: 20px;">
+        {% for log in coc %}
+        <div style="margin-bottom: 25px; position:relative;">
+            <div
+                style="position:absolute; width:12px; height:12px; background:var(--wa-primary-light); border-radius:50%; left:-27px; top:5px;">
+            </div>
+            <div style="font-weight:bold; color:var(--wa-primary-dark);">{{ log.transfer_date.strftime('%Y-%m-%d %H:%M')
+                if log.transfer_date else '' }}</div>
+            <div style="font-size:0.95em; margin-top:5px;">
+                <strong>From:</strong> {{ log.from_user }} <br>
+                <strong>To:</strong> {{ log.to_user }}
+            </div>
+            <div style="margin-top:5px; padding:10px; background:var(--wa-bg); border-radius:6px; font-size:0.9em;">
+                {{ log.purpose }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

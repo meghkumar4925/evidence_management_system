@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evidence Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div style="display:flex; align-items:center;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; margin-right: 15px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#fff;">
+                        {{ session.get('name', 'U')[0] }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">{{ session.get('name', 'User') }}</div>
+                        <div style="font-size: 0.8em; color: var(--wa-text-muted);">{{ session.get('role', '')|title }}
+                            Panel</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">📱 Dashboard</a>
+                <a href="{{ url_for('create_case') }}" class="menu-item">📁 Create Case</a>
+                <a href="{{ url_for('admin_view_evidence') }}" class="menu-item">🔍 View Evidence</a>
+                <a href="{{ url_for('admin_coc') }}" class="menu-item">🔗 Chain of Custody</a>
+                <a href="{{ url_for('add_officer') }}" class="menu-item">👮 Add Officer</a>
+                <a href="{{ url_for('add_supervisor') }}" class="menu-item">👨‍💼 Add Supervisor</a>
+                <a href="{{ url_for('active_officer') }}" class="menu-item">👮 Officer Status</a>
+                <a href="{{ url_for('active_supervisor') }}" class="menu-item">👨🏾‍💼 Supervisor Status</a>
+                <a href="{{ url_for('active_case') }}" class="menu-item">👨🏾‍💼 Case Status</a>
+                <a href="{{ url_for('change_password') }}" class="menu-item">🔑 Change Password</a>
+                {% elif session.get('role') == 'officer' %}
+                <a href="{{ url_for('officer_dashboard') }}" class="menu-item">📱 Dashboard</a>
+                <a href="{{ url_for('upload_evidence') }}" class="menu-item">⬆️ Upload Evidence</a>
+                <a href="{{ url_for('officer_view_evidence') }}" class="menu-item">🔍 View Evidence</a>
+                <a href="{{ url_for('officer_verify') }}" class="menu-item">✅ Varification Status</a>
+                {% elif session.get('role') == 'supervisor' %}
+                <a href="{{ url_for('supervisor_dashboard') }}" class="menu-item">📱 Dashboard</a>
+                <a href="{{ url_for('supervisor_verify') }}" class="menu-item">✅ Verify Evidence</a>
+                <a href="{{ url_for('supervisor_coc') }}" class="menu-item">🔗 View Chain of Custody</a>
+                <a href="{{ url_for('section_63_form') }}" class="menu-item">📄 Section 63 Form</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="menu-item" style="color: var(--wa-danger);">🚪 Logout</a>
+            </div>
+        </div>
+
+        <!-- Main Content View -->
+        <div class="main-content">
+            <div class="main-header">
+                <h3 style="font-weight: 500; color: var(--wa-text);">{% block header %}{% endblock %}</h3>
+            </div>
+            <div class="content-area">
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

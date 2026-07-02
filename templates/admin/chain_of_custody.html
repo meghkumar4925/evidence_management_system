@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block header %}Chain of Custody{% endblock %}
+{% block content %}
+
+<!-- ── Search Form ─────────────────────────────────────────── -->
+<div class="card">
+    <h4>Search Chain of Custody</h4>
+    <form action="{{ url_for('admin_coc') }}" method="POST"
+        style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px; max-width:320px;">
+            <label>Evidence ID</label>
+            <input type="text" name="evidence_id" class="form-control" value="{{ query }}" placeholder="e.g. EV001"
+                required>
+        </div>
+        <button type="submit" class="btn">🔍 View Timeline</button>
+    </form>
+</div>
+
+<!-- ── Add COC Entry Form ──────────────────────────────────── -->
+<div class="card" style="margin-top:20px;">
+    <h4>➕ Add Chain of Custody Entry</h4>
+    <form action="{{ url_for('admin_coc') }}" method="POST">
+        <input type="hidden" name="action" value="add_coc">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; flex-wrap:wrap;">
+            <div class="form-group">
+                <label>Case ID <span style="color:red;">*</span></label>
+                <select id="cocCaseSelect" name="new_case_id" class="form-control" required>
+                    <option value="">-- Select Case --</option>
+                    {% for case in all_cases %}
+                    <option value="{{ case.case_id }}">{{ case.case_id }} — {{ case.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Evidence ID <span style="color:red;">*</span>
+                    <span id="evLoadStatus" style="font-size:0.85em; margin-left:6px;"></span>
+                </label>
+                <select id="cocEvidenceSelect" name="new_evidence_id" class="form-control" required disabled>
+                    <option value="">-- Select Case first --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>From Officer (ID) <span style="color:red;">*</span></label>
+                <select id="cocFromUser" name="from_user" class="form-control" required>
+                    <option value="">-- Select Officer --</option>
+                    {% for user in all_users %}
+                    <option value="{{ user.user_id }}">{{ user.user_id }} — {{ user.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>To Officer (ID) <span style="color:red;">*</span></label>
+                <select id="cocToUser" name="to_user" class="form-control" required>
+                    <option value="">-- Select From Officer first --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Purpose <span style="color:red;">*</span></label>
+                <input type="text" name="purpose" class="form-control"
+                    placeholder="e.g. Evidence Transfer for Verification" required>
+            </div>
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <input type="text" name="notes" class="form-control" placeholder="Additional notes...">
+            </div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top:10px;">💾 Save Entry</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('cocCaseSelect').addEventListener('change', async function () {
+        const caseId = this.value;
+        const evSelect = document.getElementById('cocEvidenceSelect');
+        const evStatus = document.getElementById('evLoadStatus');
+
+        // Reset evidence dropdown
+        evSelect.innerHTML = '<option value="">-- Select Evidence --</option>';
+        evSelect.disabled = true;
+
+        if (!caseId) {
+            evSelect.innerHTML = '<option value="">-- Select Case first --</option>';
+            evStatus.innerHTML = '';
+            return;
+        }
+
+        evStatus.innerHTML = '<span style="color:#e67e22;">⏳ Loading...</span>';
+
+        try {
+            const resp = await fetch('/admin/get_evidence_by_case/' + encodeURIComponent(caseId));
+            const evidenceIds = await resp.json();
+
+            evSelect.innerHTML = '<option value="">-- Select Evidence --</option>';
+            if (evidenceIds.length === 0) {
+                evSelect.innerHTML = '<option value="">No evidence found for this case</option>';
+                evStatus.innerHTML = '<span style="color:#e74c3c;"> None found</span>';
+            } else {
+                evidenceIds.forEach(function (evId) {
+                    const opt = document.createElement('option');
+                    opt.value = evId;
+                    opt.textContent = evId;
+                    evSelect.appendChild(opt);
+                });
+                evSelect.disabled = false;
+                evStatus.innerHTML = '<span style="color:#27ae60;"> ' + evidenceIds.length + ' found</span>';
+            }
+        } catch (err) {
+            evStatus.innerHTML = '<span style="color:#e74c3c;">Error loading</span>';
+            console.error('Error fetching evidence:', err);
+        }
+    });
+
+    // ── Evidence select → auto-set From Officer ──────────────
+    document.getElementById('cocEvidenceSelect').addEventListener('change', async function () {
+        const evId = this.value;
+        const fromSelect = document.getElementById('cocFromUser');
+        const toSelect = document.getElementById('cocToUser');
+
+        // Reset From and To
+        fromSelect.value = '';
+        toSelect.innerHTML = '<option value="">-- Select From Officer first --</option>';
+
+        if (!evId) return;
+
+        try {
+            const resp = await fetch('/admin/get_evidence_holder/' + encodeURIComponent(evId));
+            const data = await resp.json();
+
+            if (data.holder) {
+                fromSelect.value = data.holder;
+                // Trigger the From → To filtering
+                fromSelect.dispatchEvent(new Event('change'));
+            }
+        } catch (err) {
+            console.error('Error fetching evidence holder:', err);
+        }
+    });
+
+    // ── From Officer → To Officer filtering ──────────────────
+    const allUsers = [
+        {% for user in all_users %}
+    { id: "{{ user.user_id }}", name: "{{ user.name }}", role: "{{ user.role }}" },
+    {% endfor %}
+    ];
+
+    document.getElementById('cocFromUser').addEventListener('change', function () {
+        const fromId = this.value;
+        const toSelect = document.getElementById('cocToUser');
+
+        toSelect.innerHTML = '<option value="">-- Select Officer --</option>';
+
+        if (!fromId) {
+            toSelect.innerHTML = '<option value="">-- Select From Officer first --</option>';
+            return;
+        }
+
+        allUsers.forEach(function (user) {
+            if (user.id !== fromId) {
+                const opt = document.createElement('option');
+                opt.value = user.id;
+                opt.textContent = user.id + ' \u2014 ' + user.name;
+                toSelect.appendChild(opt);
+            }
+        });
+    });
+</script>
+
+<!-- ── Timeline Results ────────────────────────────────────── -->
+{% if coc %}
+<div class="card" style="margin-top:20px;">
+    <h4>📋 Timeline for Evidence: <span style="color:var(--wa-primary-light);">{{ query }}</span></h4>
+    <div style="margin-top:20px; border-left:3px solid var(--wa-primary-light); padding-left:25px;">
+        {% for log in coc %}
+        <div style="margin-bottom:28px; position:relative;">
+            <!-- Timeline dot -->
+            <div style="position:absolute; width:14px; height:14px; background:var(--wa-primary-light);
+                        border-radius:50%; left:-32px; top:4px; border:2px solid var(--wa-primary-dark);"></div>
+
+            <!-- Date/time -->
+            <div style="font-weight:700; color:var(--wa-primary-dark); font-size:0.95em;">
+                🕐 {{ log.transfer_date.strftime('%d %b %Y, %H:%M') if log.transfer_date else '—' }}
+            </div>
+
+            <!-- Transfer info -->
+            <div style="margin-top:6px; font-size:0.93em; line-height:1.7;">
+                <strong>From:</strong> {{ log.from_user }} &nbsp;→&nbsp; <strong>To:</strong> {{ log.to_user }}
+            </div>
+
+            <!-- Purpose box -->
+            <div style="margin-top:6px; padding:8px 12px; background:var(--wa-bg);
+                        border-radius:6px; font-size:0.88em; color:var(--wa-text-muted);">
+                <strong>Purpose:</strong> {{ log.purpose }}
+                {% if log.notes %}
+                <br><strong>Notes:</strong> {{ log.notes }}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% elif query %}
+<div class="alert alert-warning" style="margin-top:20px;">
+    ⚠️ No chain of custody records found for Evidence ID: <strong>{{ query }}</strong>
+</div>
+{% endif %}
+
+{% endblock %}

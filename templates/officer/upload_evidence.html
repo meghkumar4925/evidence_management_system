@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block header %}Upload / Register Evidence{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 700px;">
+    <form action="{{ url_for('upload_evidence') }}" method="POST">
+        <h5 style="color:var(--wa-primary); border-bottom:1px solid #ddd; padding-bottom:10px; margin-bottom:15px;">1.
+            Basic Info</h5>
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>Case ID</label>
+                <input type="text" name="case_id" class="form-control" required>
+            </div>
+
+            <div class="form-group" style="flex:1;">
+                <label>Evidence ID</label>
+                <input type="text" name="evidence_id" class="form-control" required placeholder="case-2026-001-001">
+            </div>
+
+        </div>
+        <!-- type is text-->
+        <div class="form-group">
+            <label>File / Record (s)</label>
+            <input type="file" id="evidenceFile" name="file_name" class="form-control" required>
+        </div>
+
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>File Path</label>
+                <input type="text" name="file_path" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>File Format</label>
+                <input type="text" name="file_format" class="form-control" required
+                    placeholder="Enter file format like pdf,jpg,mp4">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Nature of Record (e.g., CCTV, WhatsApp Chat, Audio)</label>
+            <input type="text" name="nature" class="form-control" required>
+        </div>
+
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>Date Creation</label>
+                <input type="text" name="date_creation" class="form-control" required placeholder="">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Date Extraction</label>
+                <input type="text" name="file_format" class="form-control" required>
+            </div>
+        </div>
+
+        <h5
+            style="color:var(--wa-primary); border-bottom:1px solid #ddd; padding-bottom:10px; margin-bottom:15px; margin-top:20px;">
+            2. Device & Technical Details</h5>
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>Device Type (Mobile, Server, DVR...)</label>
+                <input type="text" name="device_type" class="form-control">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Make & Model</label>
+                <input type="text" name="device_make" class="form-control">
+            </div>
+        </div>
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>Serial Number / IMEI</label>
+                <input type="text" name="serial_number" class="form-control">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Storage Capacity</label>
+                <input type="text" name="storage_capacity" class="form-control">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>Operating System</label>
+                <input type="text" name="operating_system" class="form-control">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Software Used</label>
+                <input type="text" name="software_used" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Generated Hash Value (SHA-256)
+                <span id="hashStatus" style="font-size:0.85em; margin-left:8px;"></span>
+            </label>
+            <input type="text" id="hashValue" name="hash_value" class="form-control" readonly
+                style="background:#f0f4f8; font-family:monospace; font-size:0.9em; letter-spacing:0.5px;"
+                placeholder="SHA-256 hash will be generated automatically when you select a file">
+        </div>
+
+        <h5
+            style="color:var(--wa-primary); border-bottom:1px solid #ddd; padding-bottom:10px; margin-bottom:15px; margin-top:20px;">
+            3. Storage Media</h5>
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+                <label>Media Type (CD, DVD, Pen Drive...)</label>
+                <input type="text" name="storage_media" class="form-control">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Identification Mark</label>
+                <input type="text" name="storage_id_mark" class="form-control" placeholder="Like D:,E:,Toshiba:,">
+            </div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top: 15px;">Register Evidence</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('evidenceFile').addEventListener('change', async function () {
+        const file = this.files[0];
+        const hashInput = document.getElementById('hashValue');
+        const hashStatus = document.getElementById('hashStatus');
+
+        if (!file) {
+            hashInput.value = '';
+            hashStatus.innerHTML = '';
+            return;
+        }
+
+        // Show computing status
+        hashStatus.innerHTML = '<span style="color:#e67e22;">⏳ Computing hash...</span>';
+        hashInput.value = '';
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            hashInput.value = hashHex;
+            hashStatus.innerHTML = '<span style="color:#27ae60;">✅ Hash generated</span>';
+        } catch (err) {
+            hashStatus.innerHTML = '<span style="color:#e74c3c;">❌ Error generating hash</span>';
+            console.error('SHA-256 hashing error:', err);
+        }
+    });
+</script>
+{% endblock %}

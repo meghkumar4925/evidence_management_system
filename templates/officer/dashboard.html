@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block header %}Officer Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h4>My Allocated Active Cases</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Case ID</th>
+                <th>Title</th>
+                <th>Police Station</th>
+                <th>Status</th>
+                <th>Allocated Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for case in cases %}
+            <tr>
+                <td>{{ case.case_id }}</td>
+                <td>{{ case.title }}</td>
+                <td>{{ case.police_station }}</td>
+                <td><span style="color:var(--wa-primary-light);font-weight:600;">{{ case.status }}</span></td>
+                <td>{{ case.created_at.strftime('%Y-%m-%d') if case.created_at else '' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No active cases allocated to you.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

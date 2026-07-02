@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block header %}Salary History — {{ officer_name }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h4 style="margin:0;">Payment Records for {{ officer_name }} ({{ officer_id }})</h4>
+        <a href="{{ url_for('active_officer') }}"
+            style="padding:6px 14px; border-radius:4px; border:none; background:var(--wa-primary-light); color:#fff; text-decoration:none; font-size:0.9em;">
+            ← Back to Officers
+        </a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Amount (₹)</th>
+                <th>Status</th>
+                <th>Razorpay Payment ID</th>
+                <th>Created At</th>
+                <th>Paid At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in payments %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td style="font-weight:600;">₹{{ "%.2f"|format(p.amount) }}</td>
+                <td>
+                    {% if p.status == 'paid' %}
+                        <span style="color:#28a745; font-weight:600;">✅ Paid</span>
+                    {% elif p.status == 'failed' %}
+                        <span style="color:#dc3545; font-weight:600;">❌ Failed</span>
+                    {% else %}
+                        <span style="color:#ffc107; font-weight:600;">⏳ Pending</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:0.85em; color:#666;">{{ p.razorpay_payment_id or '—' }}</td>
+                <td>{{ p.created_at.strftime('%d %b %Y, %I:%M %p') if p.created_at else '—' }}</td>
+                <td>{{ p.paid_at.strftime('%d %b %Y, %I:%M %p') if p.paid_at else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center; padding:20px; color:#999;">No payment records found for this officer.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

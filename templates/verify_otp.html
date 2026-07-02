@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - EPS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .otp-info {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--wa-text-muted);
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        .otp-info .email-highlight {
+            font-weight: 600;
+            color: var(--wa-text);
+        }
+        .otp-input {
+            text-align: center;
+            font-size: 1.8em;
+            letter-spacing: 12px;
+            font-weight: 600;
+            padding: 14px !important;
+        }
+        .resend-row {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .resend-row button {
+            background: none;
+            border: none;
+            color: var(--wa-primary);
+            cursor: pointer;
+            font-size: 0.95em;
+            text-decoration: underline;
+        }
+        .resend-row button:hover {
+            color: var(--wa-primary-dark);
+        }
+        .otp-icon {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="otp-icon">🔐</div>
+                <h2>OTP Verification</h2>
+                <p style="color: var(--wa-text-muted);">Two-Step Authentication</p>
+            </div>
+
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="otp-info">
+                We've sent a 6-digit OTP to<br>
+                <span class="email-highlight">{{ masked_email }}</span>
+            </div>
+
+            <form action="{{ url_for('verify_otp') }}" method="POST">
+                <div class="form-group">
+                    <label for="otp">Enter OTP</label>
+                    <input type="text" name="otp" id="otp" class="form-control otp-input"
+                        maxlength="6" pattern="[0-9]{6}" required placeholder="------"
+                        autocomplete="one-time-code" inputmode="numeric">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; padding: 12px;">Verify & Login</button>
+            </form>
+
+            <div class="resend-row">
+                <span style="color: var(--wa-text-muted); font-size: 0.9em;">Didn't receive the code?</span>
+                <form action="{{ url_for('resend_otp') }}" method="POST" style="display: inline;">
+                    <button type="submit">Resend OTP</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

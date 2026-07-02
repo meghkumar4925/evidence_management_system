@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block header %}Create Case & Allocate{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 600px;">
+    <form action="{{ url_for('create_case') }}" method="POST">
+        <div class="form-group">
+            <label>Unique Case ID</label>
+            <input type="text" name="case_id" class="form-control" value="{{ next_case_id }}" readonly
+                style="background-color: #e9ecef;">
+        </div>
+        <div class="form-group">
+            <label>Case Title</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Police Station / Authority</label>
+            <input type="text" name="police_station" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Allocate Officer</label>
+            <select name="officer_id" class="form-control">
+                <option value="">-- Select Officer --</option>
+                {% for o in users.officers %}
+                <option value="{{ o.user_id }}">{{ o.name }} ({{ o.user_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Allocate Supervisor</label>
+            <select name="supervisor_id" class="form-control">
+                <option value="">-- Select Supervisor --</option>
+                {% for s in users.supervisors %}
+                <option value="{{ s.user_id }}">{{ s.name }} ({{ s.user_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn">Create & Allocate</button>
+    </form>
+</div>
+{% endblock %}

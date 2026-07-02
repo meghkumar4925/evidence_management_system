@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block header %}Supervisor Status{% endblock %}
+{% block content %}
+<div class="card">
+    <h4>All Supervisor</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Supervisor ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Password</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for supervisor in supervisors %}
+            <tr>
+                <td>{{ supervisor.supervisor_id }}</td>
+                <td>{{ supervisor.name }}</td>
+                <td><span style="color:var(--wa-primary-light);font-weight:600;">{{ 'Active' if supervisor.status else
+                        'Inactive' }}</span></td>
+                <td>
+                    <form action="{{ url_for('active_supervisor') }}" method="post"
+                        style="display:flex; gap:5px; align-items:center;">
+                        <input type="hidden" name="supervisor_id" value="{{ supervisor.supervisor_id }}">
+                        <select name="status" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="Active" {% if supervisor.status==true %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if supervisor.status==false %}selected{% endif %}>Inactive
+                            </option>
+                        </select>
+                        <button type="submit"
+                            style="padding:5px 10px; border-radius:4px; border:none; background:var(--wa-primary-light); color:#fff; cursor:pointer;">Update</button>
+                    </form>
+                </td>
+                <td>
+                    <button onclick="openPwdModal('{{ supervisor.supervisor_id }}', '{{ supervisor.name }}')"
+                        style="padding:5px 12px; border-radius:4px; border:none; background:#6f42c1; color:#fff; cursor:pointer; font-size:0.85em;">
+                        🔑 Password
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No supervisors found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Change Password Modal -->
+<div id="pwdModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:#fff; border-radius:10px; padding:30px; width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+        <h4 style="margin:0 0 5px 0;">🔑 Change Password</h4>
+        <p id="pwdModalLabel" style="margin:0 0 20px 0; color:#666; font-size:0.9em;"></p>
+        <form action="{{ url_for('change_user_password') }}" method="post">
+            <input type="hidden" name="user_id" id="pwdUserId">
+            <input type="hidden" name="redirect_to" value="active_supervisor">
+            <div style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9em;">New Password</label>
+                <input type="password" name="new_password" required minlength="4" placeholder="Enter new password"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:1em; box-sizing:border-box;">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closePwdModal()"
+                    style="padding:8px 18px; border-radius:6px; border:1px solid #ccc; background:#f8f9fa; color:#333; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="submit"
+                    style="padding:8px 18px; border-radius:6px; border:none; background:#6f42c1; color:#fff; cursor:pointer; font-weight:600;">
+                    Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openPwdModal(userId, userName) {
+        document.getElementById('pwdUserId').value = userId;
+        document.getElementById('pwdModalLabel').textContent = 'Supervisor: ' + userName + ' (' + userId + ')';
+        document.getElementById('pwdModal').style.display = 'flex';
+    }
+
+    function closePwdModal() {
+        document.getElementById('pwdModal').style.display = 'none';
+    }
+
+    document.getElementById('pwdModal').addEventListener('click', function(e) {
+        if (e.target === this) closePwdModal();
+    });
+</script>
+{% endblock %}

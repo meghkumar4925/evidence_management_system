@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block header %}View Case Evidence{% endblock %}
+{% block content %}
+<div class="card">
+    <form action="{{ url_for('officer_view_evidence') }}" method="POST"
+        style="display:flex; gap:10px; align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0; flex:1; max-width:300px;">
+            <label>Enter Case ID</label>
+            <input type="text" name="case_id" class="form-control" value="{{ query }}" required>
+        </div>
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
+
+{% if evidence %}
+<div class="card">
+    <h4>Evidence for Case: {{ query }}</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Evidence ID</th>
+                <th>File / Nature</th>
+                <th>Device</th>
+                <th>Status</th>
+                <th>Uploaded By</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in evidence %}
+            <tr>
+                <td>{{ e.evidence_id }}</td>
+                <td>{{ e.file_name }}<br><small style="color:var(--wa-text-muted);">{{ e.nature }}</small></td>
+                <td>{{ e.device_type }} - {{ e.device_make }}</td>
+                <td>
+                    <span style="padding:4px 8px; border-radius:12px; font-size:0.85em; 
+                        {% if e.status == 'Pending' %}background:#fef3c7;color:#92400e;
+                        {% elif e.status == 'Verified' %}background:#d1fae5;color:#065f46;
+                        {% else %}background:#e5e7eb;color:#374151;{% endif %}">
+                        {{ e.status }}
+                    </span>
+                </td>
+                <td>{{ e.uploaded_by }}</td>
+                <td>{{ e.uploaded_at.strftime('%Y-%m-%d') if e.uploaded_at else '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif query %}
+<div class="alert alert-warning">No evidence found for Case ID: {{ query }} or you are not allocated.</div>
+{% endif %}
+{% endblock %}

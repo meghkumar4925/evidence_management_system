@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPS Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <h2>Evidence Management</h2>
+                <p style="color: var(--wa-text-muted);">Secure Agency Portal</p>
+            </div>
+
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <form action="{{ url_for('login') }}" method="POST">
+                <div class="form-group">
+                    <label for="role">Login As</label>
+                    <select name="role" id="role" class="form-control" required>
+                        <option value="admin">Admin</option>
+                        <option value="officer">Officer</option>
+                        <option value="supervisor">Supervisor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user_id">User ID</label>
+                    <input type="text" name="user_id" id="user_id" class="form-control" required
+                        placeholder="Enter User ID">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" class="form-control" required
+                        placeholder="Enter Password">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 15px; padding: 12px;">Login
+                    Securely</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block header %}Officer Status{% endblock %}
+{% block content %}
+<div class="card">
+    <h4>All Officer</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Officer ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for officer in officers %}
+            <tr>
+                <td>{{ officer.officer_id }}</td>
+                <td>{{ officer.name }}</td>
+                <td><span style="color:var(--wa-primary-light);font-weight:600;">{{ 'Active' if officer.status else
+                        'Inactive' }}</span></td>
+                <td>
+                    <form action="{{ url_for('active_officer') }}" method="post"
+                        style="display:flex; gap:5px; align-items:center;">
+                        <input type="hidden" name="officer_id" value="{{ officer.officer_id }}">
+                        <select name="status" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="Active" {% if officer.status==true %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if officer.status==false %}selected{% endif %}>Inactive</option>
+                        </select>
+                        <button type="submit"
+                            style="padding:5px 10px; border-radius:4px; border:none; background:var(--wa-primary-light); color:#fff; cursor:pointer;">Update</button>
+                    </form>
+                </td>
+                <td>
+                    <button onclick="openPayModal('{{ officer.officer_id }}', '{{ officer.name }}')"
+                        style="padding:5px 10px; border-radius:4px; border:none; background:#28a745; color:#fff; cursor:pointer; font-size:0.85em;">
+                        💰 Pay
+                    </button>
+                    <a href="{{ url_for('salary_history', officer_id=officer.officer_id) }}"
+                        style="padding:5px 10px; border-radius:4px; border:none; background:#17a2b8; color:#fff; cursor:pointer; text-decoration:none; font-size:0.85em; display:inline-block;">
+                        📋 History
+                    </a>
+                    <button onclick="openPwdModal('{{ officer.officer_id }}', '{{ officer.name }}')"
+                        style="padding:5px 10px; border-radius:4px; border:none; background:#6f42c1; color:#fff; cursor:pointer; font-size:0.85em;">
+                        🔑 Password
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No officers found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pay Salary Modal -->
+<div id="payModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:#fff; border-radius:10px; padding:30px; width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+        <h4 style="margin:0 0 5px 0;">💰 Pay Salary</h4>
+        <p id="payModalOfficerLabel" style="margin:0 0 20px 0; color:#666; font-size:0.9em;"></p>
+        <input type="hidden" id="payOfficerId">
+        <div style="margin-bottom:15px;">
+            <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9em;">Amount (₹)</label>
+            <input type="number" id="payAmount" min="1" step="0.01" placeholder="Enter salary amount"
+                style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:1em; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button onclick="closePayModal()"
+                style="padding:8px 18px; border-radius:6px; border:1px solid #ccc; background:#f8f9fa; color:#333; cursor:pointer;">
+                Cancel
+            </button>
+            <button onclick="initPayment()"
+                style="padding:8px 18px; border-radius:6px; border:none; background:#28a745; color:#fff; cursor:pointer; font-weight:600;">
+                Proceed to Pay
+            </button>
+        </div>
+        <p id="payError" style="color:red; margin-top:10px; font-size:0.85em; display:none;"></p>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="pwdModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:#fff; border-radius:10px; padding:30px; width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+        <h4 style="margin:0 0 5px 0;">🔑 Change Password</h4>
+        <p id="pwdModalLabel" style="margin:0 0 20px 0; color:#666; font-size:0.9em;"></p>
+        <form action="{{ url_for('change_user_password') }}" method="post">
+            <input type="hidden" name="user_id" id="pwdUserId">
+            <input type="hidden" name="redirect_to" value="active_officer">
+            <div style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9em;">New Password</label>
+                <input type="password" name="new_password" required minlength="4" placeholder="Enter new password"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:1em; box-sizing:border-box;">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closePwdModal()"
+                    style="padding:8px 18px; border-radius:6px; border:1px solid #ccc; background:#f8f9fa; color:#333; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="submit"
+                    style="padding:8px 18px; border-radius:6px; border:none; background:#6f42c1; color:#fff; cursor:pointer; font-weight:600;">
+                    Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    // === Pay Modal ===
+    function openPayModal(officerId, officerName) {
+        document.getElementById('payOfficerId').value = officerId;
+        document.getElementById('payModalOfficerLabel').textContent = 'Officer: ' + officerName + ' (' + officerId + ')';
+        document.getElementById('payAmount').value = '';
+        document.getElementById('payError').style.display = 'none';
+        document.getElementById('payModal').style.display = 'flex';
+    }
+
+    function closePayModal() {
+        document.getElementById('payModal').style.display = 'none';
+    }
+
+    function initPayment() {
+        const officerId = document.getElementById('payOfficerId').value;
+        const amount = document.getElementById('payAmount').value;
+        const errorEl = document.getElementById('payError');
+
+        if (!amount || parseFloat(amount) <= 0) {
+            errorEl.textContent = 'Please enter a valid amount.';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        errorEl.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('officer_id', officerId);
+        formData.append('amount', amount);
+
+        fetch('{{ url_for("pay_salary") }}', {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    errorEl.textContent = data.error;
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                var options = {
+                    key: data.key,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: 'Evidence Management System',
+                    description: 'Salary Payment for ' + officerId,
+                    order_id: data.order_id,
+                    handler: function (response) {
+                        const verifyData = new FormData();
+                        verifyData.append('razorpay_payment_id', response.razorpay_payment_id);
+                        verifyData.append('razorpay_order_id', response.razorpay_order_id);
+                        verifyData.append('razorpay_signature', response.razorpay_signature);
+
+                        fetch('{{ url_for("verify_salary_payment") }}', {
+                            method: 'POST',
+                            body: verifyData
+                        })
+                            .then(res => res.json())
+                            .then(result => {
+                                if (result.status === 'success') {
+                                    alert('✅ Payment successful! Salary paid.');
+                                    closePayModal();
+                                    location.reload();
+                                } else {
+                                    alert('❌ Payment verification failed: ' + (result.error || 'Unknown error'));
+                                }
+                            });
+                    },
+                    theme: { color: '#28a745' }
+                };
+
+                var rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    alert('❌ Payment failed: ' + response.error.description);
+                });
+                rzp.open();
+                closePayModal();
+            })
+            .catch(err => {
+                errorEl.textContent = 'Network error: ' + err;
+                errorEl.style.display = 'block';
+            });
+    }
+
+    document.getElementById('payModal').addEventListener('click', function (e) {
+        if (e.target === this) closePayModal();
+    });
+
+    // === Password Modal ===
+    function openPwdModal(userId, userName) {
+        document.getElementById('pwdUserId').value = userId;
+        document.getElementById('pwdModalLabel').textContent = 'Officer: ' + userName + ' (' + userId + ')';
+        document.getElementById('pwdModal').style.display = 'flex';
+    }
+
+    function closePwdModal() {
+        document.getElementById('pwdModal').style.display = 'none';
+    }
+
+    document.getElementById('pwdModal').addEventListener('click', function (e) {
+        if (e.target === this) closePwdModal();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block header %}Add Supervisor{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 500px;">
+    <form action="{{ url_for('add_supervisor') }}" method="POST" id="addSupervisorForm" novalidate>
+
+        <div class="form-group">
+            <label>Supervisor ID</label>
+            <input type="text" name="supervisor_id" id="supervisorId" class="form-control" readonly
+                value="{{ next_supervisor_id }}" style="background:#f0f4f8;">
+        </div>
+
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" id="supervisorName" class="form-control" required pattern="[A-Za-z\s]+"
+                title="Name must contain letters only (no numbers or special characters)" oninput="validateName(this)">
+            <small id="nameError" style="color:#e74c3c; display:none;">
+                ⚠ Name must contain <strong>letters only</strong> (spaces allowed).
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label>Department</label>
+            <input type="text" name="department" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" id="supervisorPhone" class="form-control" pattern="[0-9]{10}"
+                placeholder="e.g. 9876543210" oninput="validatePhone(this)">
+            <small id="phoneError" style="color:#e74c3c; display:none;">
+                ⚠ Phone must be exactly <strong>10 digits</strong>.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label>Email ID</label>
+            <input type="email" name="email" id="supervisorEmail" class="form-control"
+                placeholder="e.g. supervisor@example.com" oninput="validateEmail(this)">
+            <small id="emailError" style="color:#e74c3c; display:none;">
+                ⚠ Enter a valid email address (e.g. <em>name@domain.com</em>).
+            </small>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top:10px;">Register Supervisor</button>
+    </form>
+</div>
+
+<script>
+    // ── Live validation helpers ─────────────────────────────────
+    function validateName(input) {
+        const err = document.getElementById('nameError');
+        const valid = /^[A-Za-z\s]+$/.test(input.value.trim()) && input.value.trim().length > 0;
+        err.style.display = valid || input.value === '' ? 'none' : 'block';
+        input.style.borderColor = valid || input.value === '' ? '' : '#e74c3c';
+    }
+
+    function validatePhone(input) {
+        const err = document.getElementById('phoneError');
+        const valid = /^[0-9]{10}$/.test(input.value.trim());
+        err.style.display = valid || input.value === '' ? 'none' : 'block';
+        input.style.borderColor = valid || input.value === '' ? '' : '#e74c3c';
+    }
+
+    function validateEmail(input) {
+        const err = document.getElementById('emailError');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const valid = emailRegex.test(input.value.trim());
+        err.style.display = valid || input.value === '' ? 'none' : 'block';
+        input.style.borderColor = valid || input.value === '' ? '' : '#e74c3c';
+    }
+
+    // ── Block submit if any field is invalid ────────────────────
+    document.getElementById('addSupervisorForm').addEventListener('submit', function (e) {
+        const nameInput = document.getElementById('supervisorName');
+        const emailInput = document.getElementById('supervisorEmail');
+        const phoneInput = document.getElementById('supervisorPhone');
+
+        const nameValid = /^[A-Za-z\s]+$/.test(nameInput.value.trim()) && nameInput.value.trim().length > 0;
+        const emailValid = emailInput.value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+        const phoneValid = phoneInput.value === '' || /^[0-9]{10}$/.test(phoneInput.value.trim());
+
+        if (!nameValid) { validateName(nameInput); }
+        if (!emailValid) { validateEmail(emailInput); }
+        if (!phoneValid) { validatePhone(phoneInput); }
+
+        if (!nameValid || !emailValid || !phoneValid) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+
+</script>
+{% endblock %}

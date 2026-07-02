@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block header %}ALL Cases{% endblock %}
+{% block content %}
+<div class="card">
+    <h4>All Cases</h4>
+
+    <!-- Year Search -->
+    <form method="GET" action="{{ url_for('active_case') }}" 
+          style="display:flex; gap:10px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+        <label style="font-weight:600;">Search by Year:</label>
+        <input type="number" name="search_year" 
+               value="{{ search_year }}" 
+               placeholder="e.g. 2026" 
+               min="2000" max="2099"
+               style="padding:8px 12px; border-radius:6px; border:1px solid #ccc; width:140px; font-size:15px;">
+        <button type="submit" 
+                style="padding:8px 18px; border-radius:6px; border:none; background:var(--wa-primary-light); color:#fff; cursor:pointer; font-weight:600;">
+            🔍 Search
+        </button>
+        {% if search_year %}
+        <a href="{{ url_for('active_case') }}" 
+           style="padding:8px 18px; border-radius:6px; background:#6c757d; color:#fff; text-decoration:none; font-weight:600;">
+            Show All
+        </a>
+        {% endif %}
+    </form>
+
+    {% if search_year %}
+    <p style="margin-bottom:10px; color:var(--wa-primary-light); font-weight:600;">
+        Showing cases for year: {{ search_year }} ({{ cases|length }} found)
+    </p>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Case ID</th>
+                <th>Title</th>
+                <th>Police Station</th>
+                <th>Status</th>
+                <th>Action </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for case in cases %}
+            <tr>
+                <td>{{ case.case_id }}</td>
+                <td>{{ case.title }}</td>
+                <td>{{ case.police_station }}</td>
+                <td><span style="color:var(--wa-primary-light);font-weight:600;">{{ case.status }}</span></td>
+                <td>
+                    <form action="{{ url_for('active_case') }}" method="post"
+                        style="display:flex; gap:5px; align-items:center;">
+                        <input type="hidden" name="case_id" value="{{ case.case_id }}">
+                        <select name="status" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="Active"    {% if case.status == 'Active'    %}selected{% endif %}>Active</option>
+                            <option value="Closed"    {% if case.status == 'Closed'    %}selected{% endif %}>Closed</option>
+                            <option value="Pending"   {% if case.status == 'Pending'   %}selected{% endif %}>Pending</option>
+                            <option value="Archived"  {% if case.status == 'Archived'  %}selected{% endif %}>Archived</option>
+                        </select>
+                        <button type="submit" style="padding:5px 10px; border-radius:4px; border:none; background:var(--wa-primary-light); color:#fff; cursor:pointer;">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">
+                    {% if search_year %}
+                        No cases found for year {{ search_year }}.
+                    {% else %}
+                        No cases found.
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

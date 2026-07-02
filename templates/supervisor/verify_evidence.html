@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block header %}Verify Evidence{% endblock %}
+{% block content %}
+<div class="card">
+    <form action="{{ url_for('supervisor_verify') }}" method="GET"
+        style="display:flex; gap:10px; align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0; flex:1; max-width:300px;">
+            <label>Enter Case ID</label>
+            <input type="text" name="case_id" class="form-control" value="{{ case_query }}" required>
+        </div>
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
+
+{% if evidence %}
+<div class="card">
+    <h4>Evidence Pending Verification</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Evidence ID</th>
+                <th>File / Nature</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in evidence %}
+            <tr>
+                <td>{{ e.evidence_id }}</td>
+                <td>{{ e.file_name }}<br><small style="color:var(--wa-text-muted);">{{ e.nature }}</small></td>
+                <td>
+                    <span style="padding:4px 8px; border-radius:12px; font-size:0.85em; 
+                        {% if e.status == 'Pending' %}background:#fef3c7;color:#92400e;
+                        {% elif e.status == 'Verified' %}background:#d1fae5;color:#065f46;
+                        {% else %}background:#e5e7eb;color:#374151;{% endif %}">
+                        {{ e.status }}
+                    </span>
+                </td>
+                <td>
+                    <form action="{{ url_for('supervisor_verify') }}" method="POST"
+                        style="display:flex; gap:5px; align-items:center;">
+                        <input type="hidden" name="action" value="update_status">
+                        <input type="hidden" name="evidence_id" value="{{ e.evidence_id }}">
+                        <input type="hidden" name="case_id" value="{{ case_query }}">
+                        <select name="status" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="Pending" {% if e.status=='Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Verified" {% if e.status=='Verified' %}selected{% endif %}>Verified</option>
+                            <option value="Rejected" {% if e.status=='Rejected' %}selected{% endif %}>Rejected</option>
+                        </select>
+                        <input type="text" name="notes" placeholder="Notes..."
+                            style="padding:5px; border-radius:4px; border:1px solid #ccc; width:150px;">
+                        <button type="submit" class="btn" style="padding:5px 10px; font-size:0.9em;">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif case_query %}
+<div class="alert alert-warning">No evidence found for Case ID: {{ case_query }}</div>
+{% endif %}
+{% endblock %}

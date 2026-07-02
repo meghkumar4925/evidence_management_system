@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block header %}Generate Section 63 Certificate{% endblock %}
+{% block content %}
+<div class="card hide-on-print">
+    <form action="{{ url_for('section_63_form') }}" method="POST" style="display:flex; gap:10px; align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0; flex:1; max-width:250px;">
+            <label>Evidence ID</label>
+            <input type="text" name="evidence_id" class="form-control" required>
+        </div>
+        <div class="form-group" style="margin-bottom:0; flex:1; max-width:150px;">
+            <label>Format Type</label>
+            <select name="form_format" class="form-control">
+                <option value="A" {% if form_format=='A' %}selected{% endif %}>FORMAT - A</option>
+                <option value="B" {% if form_format=='B' %}selected{% endif %}>FORMAT - B</option>
+            </select>
+        </div>
+        <button type="submit" class="btn">Generate Form</button>
+    </form>
+</div>
+
+{% if not_found %}
+<div class="card hide-on-print"
+    style="border-left: 5px solid #e74c3c; background:#fff5f5; padding: 20px; margin-top:10px;">
+    <p style="color:#e74c3c; font-size:1.05em; margin:0;">
+        ❌ <strong>Evidence ID not found.</strong> Please check the ID and try again.
+    </p>
+</div>
+{% endif %}
+
+{% if not_verified %}
+<div class="card hide-on-print"
+    style="border-left: 5px solid #e67e22; background:#fff8f0; padding: 20px; margin-top:10px;">
+    <p style="color:#e67e22; font-size:1.05em; margin:0;">
+        ⚠️ <strong>Evidence Not Verified.</strong> The Section 63 certificate can only be generated for evidence with
+        status <strong>Verified</strong>.
+        Please verify the evidence first before generating the certificate.
+    </p>
+</div>
+{% endif %}
+
+{% if data %}
+<div class="card printable-section"
+    style="background: white; color: black; font-family: 'Times New Roman', Times, serif; padding: 40px; border: 1px solid #ccc;">
+
+    <div style="text-align:center; margin-bottom: 30px;">
+        <h3 style="text-decoration: underline;">Section 63 Certificate</h3>
+        <h4>FORMAT – {{ form_format }}</h4>
+    </div>
+
+    {% if form_format == 'A' %}
+    <div style="margin-bottom: 20px;">
+        <strong>1. Case Information</strong>
+        <p>Case Title: {{ data.case_title }}</p>
+        <p>Case Number: {{ data.case_id }}</p>
+        <p>Police Station / Authority: {{ data.police_station }}</p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <strong>2. Details of Electronic Record</strong>
+        <p>Nature of Record: {{ data.nature }}</p>
+        <p>File Name(s): {{ data.file_name }}</p>
+        <p>Date & Time of Creation: __________________ (As seen on device)</p>
+        <p>Date & Time of Extraction: {{ data.uploaded_at.strftime('%Y-%m-%d %H:%M') if data.uploaded_at else '' }}</p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <strong>3. Device Details</strong>
+        <p>Device Type: {{ data.device_type }}</p>
+        <p>Make & Model: {{ data.device_make }}</p>
+        <p>Serial Number / IMEI: {{ data.serial_number }}</p>
+        <p>Storage Capacity: {{ data.storage_capacity }}</p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <strong>4. Technical Information</strong>
+        <p>Operating System: {{ data.operating_system }}</p>
+        <p>Software Used for Extraction: {{ data.software_used }}</p>
+        <p>Hash Algorithm Used: SHA-256</p>
+        <p>Generated Hash Value: <br><span style="font-family: monospace; word-break: break-all;">{{ data.hash_value
+                }}</span></p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <strong>5. Storage Media Where Copy Stored</strong>
+        <p>Media Type: {{ data.storage_media }}</p>
+        <p>Identification Mark: {{ data.storage_id_mark }}</p>
+    </div>
+    {% endif %}
+
+    {% if form_format == 'B' %}
+    <div style="line-height: 1.8; margin-bottom: 40px;">
+        <p>I, <strong>{{ session.get('name') }}</strong> (Name),</p>
+        <p>Designation: Supervisor,</p>
+        <p>Department/Organization: Agency Database,</p>
+        <p><br>do hereby certify that:</p>
+        <ul style="list-style-type: disc; margin-left: 40px; margin-bottom: 20px;">
+            <li>The electronic record described in Part A was produced from a computer/device that was regularly used to
+                store and process information in the ordinary course of activities.</li>
+            <li>The information was fed into the device in the regular course of operation.</li>
+            <li>The computer/device was functioning properly at the time of extraction.</li>
+            <li>The electronic record is a true and accurate copy of the original.</li>
+            <li>The hash value mentioned in Part A confirms the integrity and authenticity of the electronic record.
+            </li>
+            <li>The certificate is issued in compliance with Section 63 of the Bharatiya Sakshya Adhiniyam, 2023.</li>
+        </ul>
+        <p>Evidence ID Reference: <strong>{{ data.evidence_id }}</strong></p>
+        <p>Hash Value: <br><span style="font-family: monospace; word-break: break-all;">{{ data.hash_value }}</span></p>
+    </div>
+
+    <div style="display:flex; justify-content: space-between; margin-top: 50px;">
+        <div>
+            <p>Place: __________________</p>
+            <p>Date: ___________________</p>
+        </div>
+        <div style="text-align: center;">
+            <p>___________________________________</p>
+            <p>Signature of Certifying Officer</p>
+            <p>Name: <strong>{{ session.get('name') }}</strong></p>
+            <p>Official Seal: _____________</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 40px; text-align:center;" class="hide-on-print">
+        <button onclick="window.print()" class="btn" style="background:#128c7e;">Print Certificate</button>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .printable-section,
+        .printable-section * {
+            visibility: visible;
+        }
+
+        .printable-section {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none;
+            padding: 0;
+        }
+
+        .hide-on-print {
+            display: none !important;
+        }
+
+        .sidebar {
+            display: none !important;
+        }
+
+        .main-header {
+            display: none !important;
+        }
+
+        .app-container {
+            background: white !important;
+        }
+    }
+</style>
+{% endif %}
+{% endblock %}
