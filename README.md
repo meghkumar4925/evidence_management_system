@@ -162,8 +162,8 @@ The OTP relies on a standard Gmail SMTP broker. The configuration is located at 
 ```python
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = "evidencem2008@gmail.com"
-SMTP_APP_PASSWORD = "upurmohkxhlescmh"  # App-specific password
+SMTP_EMAIL = ""
+SMTP_APP_PASSWORD = ""  # App-specific password
 ```
 > [!TIP]
 > If you wish to use your own email account, generate a **Gmail App Password** (under Google Account settings -> Security -> 2-Step Verification -> App Passwords) and update `SMTP_EMAIL` and `SMTP_APP_PASSWORD`.
